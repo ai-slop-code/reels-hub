@@ -114,7 +114,7 @@ From 1 Dec, deploy to the run machine only when 2 approved reels are in the buff
   - Spec: §21, §23.6, R59. Depends on: 0.2.
   - Tests: none beyond CI; workflow lint by running it.
   - Verify: after merge, `gh run list --workflow release.yml` is green; the package exists and is **public**, linked to the repo (🔑 OWNER: a new GHCR package may start private; if so, set it to public once on its package settings page, R124).
-- [ ] **0.4 `feature/db-migrations`**
+- [x] **0.4 `feature/db-migrations`**
   - Scope: DB helper; migration runner over `src/reels_hub/migrations/NNNN_<name>.sql` with a `schema_version`; if a migration is pending, back up first (`VACUUM INTO` temp → `PRAGMA integrity_check` → rename to `/media/_backups/db/pre-migrate-<from>-<to>-YYYYMMDD-HHMM.sqlite`); `0001` creates the phase-0 tables (`project` minimal, `project_media_folder`, `shoot`, `take`, `device`, `clip`, `job`, `agent_log`). Later tables come with their phase.
   - Spec: §18, §21, §23.6, R18, R61. Depends on: 0.1.
   - Tests: applies to an empty DB; second start is a no-op; backup only when pending; failed integrity check → no rename; FTS5 is available.

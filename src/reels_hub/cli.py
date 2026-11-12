@@ -1,7 +1,15 @@
 import argparse
+import sys
 from collections.abc import Sequence
+from pathlib import Path
 
 from reels_hub import __version__
+from reels_hub.db import (
+    DEFAULT_BACKUP_DIR,
+    DEFAULT_DB_PATH,
+    MigrationError,
+    migrate,
+)
 
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 8787
@@ -15,6 +23,10 @@ def build_parser() -> argparse.ArgumentParser:
     serve.add_argument("--host", default=DEFAULT_HOST)
     serve.add_argument("--port", type=int, default=DEFAULT_PORT)
 
+    db = commands.add_parser("migrate", help="back up, then apply pending database migrations")
+    db.add_argument("--db", type=Path, default=DEFAULT_DB_PATH)
+    db.add_argument("--backup-dir", type=Path, default=DEFAULT_BACKUP_DIR)
+
     commands.add_parser("version", help="print the version")
     return parser
 
@@ -27,4 +39,13 @@ def main(argv: Sequence[str] | None = None) -> int:
         import uvicorn
 
         uvicorn.run("reels_hub.app:app", host=args.host, port=args.port)
+    elif args.command == "migrate":
+        try:
+            result = migrate(args.db, args.backup_dir)
+        except MigrationError as exc:
+            print(f"reels-hub migrate: {exc}", file=sys.stderr)
+            return 1
+        print(f"schema {result.from_version} -> {result.to_version}")
+        if result.backup is not None:
+            print(f"backup {result.backup}")
     return 0
