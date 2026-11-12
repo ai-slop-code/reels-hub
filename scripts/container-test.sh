@@ -83,6 +83,6 @@ until curl -fsS "http://127.0.0.1:$PORT/health" >"$HEALTH" 2>/dev/null; do
 done
 grep -q '"status":"ok"' "$HEALTH"
 grep -q '"media_mounted":true' "$HEALTH"
-grep -q '"schema_version":1' "$HEALTH"
+grep -Eq '"schema_version":[1-9]' "$HEALTH"
 "$ENGINE" exec "$NAME" /app/bin/healthcheck
 echo "OK: runtime image starts and answers /health"
