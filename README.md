@@ -19,6 +19,12 @@ make test                             # ruff, mypy and pytest; CI runs the same 
 uv run reels-hub serve                # http://127.0.0.1:8787/health
 ```
 
+Container tests need Podman (or Docker on CI). On the build machine set `REELS_HUB_INSECURE_TLS=1` (R125); the npm step is then skipped when the registry is blocked, and CI runs the full check:
+
+```bash
+make test-container                   # image build, in-image tests and a smoke test
+```
+
 ## Push guard
 
 `main` is protected on GitHub (R124): a pull request with a green `test` check on an up-to-date branch is required, also for admins. Every change goes through a branch and a pull request, and is merged with:

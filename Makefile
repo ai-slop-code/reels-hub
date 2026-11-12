@@ -9,4 +9,4 @@ lint:
 	uv run mypy src
 
 test-container:
-	@echo "test-container: not built yet (plan item 0.2, chore/container-image)"
+	scripts/container-test.sh
