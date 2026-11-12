@@ -1,0 +1,3 @@
+- [Reels Hub project](reels-hub-project.md) — planned local app for Reels; spec path and project → reel → prompt flow
+- [Reels Hub branch workflow](reels-hub-branch-workflow.md) — branch per feature, merge to main only when done and all tests pass
+- [Music preferences](music-preferences.md) — commercial music via Edits, no royalty-free stock by default, no yt-dlp

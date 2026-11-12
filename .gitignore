@@ -1,0 +1,23 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+dist/
+build/
+
+# Secrets
+.env
+.env.*
+
+# Test fixtures: generated at test time; real snippets stay local (R120)
+tests/fixtures/local/
+tests/fixtures/generated/
+
+# Node
+node_modules/
+
+# macOS
+.DS_Store
