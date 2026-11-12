@@ -1,0 +1,51 @@
+name: release
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  image:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Log in to GHCR
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: echo "$GITHUB_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+
+      - name: Build the linux/arm64 runtime image
+        run: |
+          set -eu
+          REPO=ghcr.io/ai-slop-code/reels-hub
+          if [ "$GITHUB_REF_TYPE" = tag ]; then VERSION="$GITHUB_REF_NAME"; else VERSION="$GITHUB_SHA"; fi
+          docker build --platform linux/arm64 -f Containerfile --target runtime \
+            --build-arg VERSION="$VERSION" --build-arg REVISION="$GITHUB_SHA" \
+            -t "$REPO:$GITHUB_SHA" .
+          if [ "$GITHUB_REF_TYPE" = tag ]; then
+            docker tag "$REPO:$GITHUB_SHA" "$REPO:$GITHUB_REF_NAME"
+          else
+            docker tag "$REPO:$GITHUB_SHA" "$REPO:latest"
+          fi
+
+      - name: Push
+        run: |
+          set -eu
+          REPO=ghcr.io/ai-slop-code/reels-hub
+          docker push "$REPO:$GITHUB_SHA"
+          if [ "$GITHUB_REF_TYPE" = tag ]; then
+            docker push "$REPO:$GITHUB_REF_NAME"
+          else
+            docker push "$REPO:latest"
+          fi
