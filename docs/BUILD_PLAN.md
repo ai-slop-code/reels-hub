@@ -103,7 +103,7 @@ From 1 Dec, deploy to the run machine only when 2 approved reels are in the buff
   - Spec: §21, §24, §24.4. Depends on: owner bootstrap steps (I1–I3).
   - Tests: `/health` returns 200; `tests/test_docs_links.py` checks that every relative Markdown link in the repo resolves (code spans and fenced blocks ignored); CLI `version`; the pre-push hook rejects a `main` ref and allows others.
   - Verify: CI job `test` runs on `ubuntu-24.04-arm` and is green; merge with `gh pr checks --watch --fail-fast && gh pr merge --squash --delete-branch`.
-- [ ] **0.2 `chore/container-image`**
+- [x] **0.2 `chore/container-image`**
   - Scope: the full multi-stage `Containerfile` per spec §23.6 (`node` with `hyperframes@0.9.39` pinned in `package-lock.json` (R126); `runtime` on `python:3.12-slim-bookworm` pinned by digest with `ffmpeg chromium fonts-noto-core`, `PUPPETEER_SKIP_DOWNLOAD=1`, `uv sync --frozen --no-dev` before `COPY src/` with a cache mount, OCI version and revision labels; `test` stage); `.containerignore`; `bin/healthcheck`; `scripts/container-test.sh` (build the `test` target and run `pytest -m container` inside it; build `runtime` and run the isolated smoke test); `make test-container`; CI runs it inside job `test`.
   - Spec: §23.6, §24.2, R63, R64, R121. Depends on: 0.1. QEMU fallback only if the arm64 runner fails (R121).
   - Tests: smoke test (container starts, `/health`); `hyperframes doctor` passes with Debian Chromium.

@@ -1,0 +1,18 @@
+# Keep the build context small: no VCS data, virtualenvs, caches, docs, fixtures or secrets.
+.git
+.github
+.githooks
+.venv
+.mypy_cache
+.pytest_cache
+.ruff_cache
+.env
+.env.*
+**/__pycache__
+**/*.py[cod]
+node_modules
+dist
+build
+docs
+tests/fixtures/local
+tests/fixtures/generated

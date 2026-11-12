@@ -1,0 +1,8 @@
+{
+  "name": "reels-hub-node",
+  "private": true,
+  "description": "Pins the HyperFrames CLI used by the container's node stage (spec §23.6, R126). Never installed at runtime.",
+  "dependencies": {
+    "hyperframes": "0.9.39"
+  }
+}
