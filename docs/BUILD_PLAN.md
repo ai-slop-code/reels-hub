@@ -129,7 +129,7 @@ From 1 Dec, deploy to the run machine only when 2 approved reels are in the buff
   - Spec: §23.2, §23.3, R14, R62, R66. Depends on: 0.4, 0.5.
   - Tests: path derivation; `~` and relative roots refused; both 503 cases.
   - Verify: smoke test checks the `/health` fields.
-- [ ] **0.7 `feature/probe-and-fixtures`**
+- [x] **0.7 `feature/probe-and-fixtures`**
   - Scope: `tests/fixtures/make_fixtures.sh` (ffmpeg lavfi test patterns and tones, all < 5 MB), run by `make test` and the container tests to generate the clips at test time into a git-ignored folder; only the script is committed (R120): Sony-like `C0001.MP4` 540p 25p with timecode, 2 audio channels and a Sony-style XML sidecar; DJI-like `DJI_…_0001_D.MP4` 25p with `.LRF` and `.WAV`; a 50p clip; a VFR clip; an HLG-tagged clip; a clip with clipped audio; a camera pair with a known audio offset; one 2 s 4K HEVC clip. ffprobe wrapper: duration (ms), codec, resolution, fps, audio channels, camera model, start timecode, color transfer; flags `vfr` and `hdr_log` (the fps-mismatch flag needs a reel: 9.3).
   - Spec: §5.1 step 2, §24.2, R69, R70, R120. Depends on: 0.2.
   - Tests: parser on stored ffprobe JSON (host); probing every fixture inside the image (`-m container`).

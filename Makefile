@@ -1,7 +1,10 @@
-.PHONY: test lint test-container
+.PHONY: test lint fixtures test-container
 
-test: lint
+test: fixtures lint
 	uv run pytest
+
+fixtures:
+	sh tests/fixtures/make_fixtures.sh
 
 lint:
 	uv run ruff check .
