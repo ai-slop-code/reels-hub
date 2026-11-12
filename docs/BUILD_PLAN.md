@@ -124,7 +124,7 @@ From 1 Dec, deploy to the run machine only when 2 approved reels are in the buff
   - Spec: §4, §21, §23.4, §23.6, R13, R61. Depends on: 0.4.
   - Tests: claim order; re-queue on restart; failure recorded; backup catch-up and retention (fake clock).
   - Verify: unit tests; job counts appear in `/health` after 0.6.
-- [ ] **0.6 `feature/media-root-health`**
+- [x] **0.6 `feature/media-root-health`**
   - Scope: config (`REELS_HUB_HOST_MEDIA_ROOT` must be absolute, else exit with a clear error; `/media` and `/data` overridable for tests); write the media marker on first setup; path helpers (relative ↔ container ↔ host); `/health` JSON with `version`, `git_sha`, `schema_version`, `media_mounted`, `media_free_gb`, `data_free_gb`, job counts; 503 only if the DB can't open or the marker is missing.
   - Spec: §23.2, §23.3, R14, R62, R66. Depends on: 0.4, 0.5.
   - Tests: path derivation; `~` and relative roots refused; both 503 cases.

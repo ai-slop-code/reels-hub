@@ -9,6 +9,7 @@ from fastapi.testclient import TestClient
 
 from reels_hub.app import create_app
 from reels_hub.backup import daily_name, prune_daily
+from reels_hub.config import Settings
 from reels_hub.db import connect, migrate
 from reels_hub.jobs import (
     BACKUP_KIND,
@@ -229,9 +230,12 @@ def test_stopping_kills_the_running_subprocess_and_requeues_the_job(
     assert status_of(db_path, job_id) == "queued"
 
 
-def test_app_lifespan_starts_and_stops_the_worker(db_path: Path, backups: Path) -> None:
+def test_app_lifespan_starts_and_stops_the_worker(
+    db_path: Path, backups: Path, settings: Settings
+) -> None:
+    migrate(settings.db_path, settings.backup_dir)
     worker = Worker(db_path, backups, clock=FixedClock(T0), poll_seconds=0.02)
-    with TestClient(create_app(worker=worker)) as client:
+    with TestClient(create_app(settings=settings, worker=worker)) as client:
         assert worker.running
         assert client.get("/health").status_code == 200
     assert not worker.running

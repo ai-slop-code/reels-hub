@@ -65,7 +65,8 @@ build test "$IMG_TEST"
 echo "==> smoke test of the runtime image"
 mkdir -p "$MEDIA"
 "$ENGINE" volume create "$VOLUME" >/dev/null
-"$ENGINE" run -d --name "$NAME" -p 127.0.0.1::8787 -v "$MEDIA:/media" -v "$VOLUME:/data" "$IMG_RUNTIME" >/dev/null
+"$ENGINE" run -d --name "$NAME" -p 127.0.0.1::8787 \
+  -e REELS_HUB_HOST_MEDIA_ROOT="$MEDIA" -v "$MEDIA:/media" -v "$VOLUME:/data" "$IMG_RUNTIME" >/dev/null
 PORT="$("$ENGINE" port "$NAME" 8787 | head -n 1 | sed 's/.*://')"
 
 HEALTH="$MEDIA/health.json"
@@ -80,5 +81,7 @@ until curl -fsS "http://127.0.0.1:$PORT/health" >"$HEALTH" 2>/dev/null; do
   sleep 1
 done
 grep -q '"status":"ok"' "$HEALTH"
+grep -q '"media_mounted":true' "$HEALTH"
+grep -q '"schema_version":1' "$HEALTH"
 "$ENGINE" exec "$NAME" /app/bin/healthcheck
 echo "OK: runtime image starts and answers /health"
