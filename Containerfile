@@ -34,6 +34,7 @@ COPY --from=ghcr.io/astral-sh/uv:0.13.7 /uv /bin/uv
 ENV UV_COMPILE_BYTECODE=1 \
     UV_LINK_MODE=copy \
     UV_PROJECT_ENVIRONMENT=/app/.venv \
+    REELS_HUB_GIT_SHA=$REVISION \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium \
     PATH=/app/.venv/bin:/opt/hyperframes/node_modules/.bin:$PATH
 

@@ -114,8 +114,28 @@ def test_fts5_is_available_with_diacritic_folding(tmp_path: Path) -> None:
 
 
 def test_migrate_command_prints_the_schema_change(
-    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    args = ["migrate", "--db", str(tmp_path / "hub.sqlite"), "--backup-dir", str(tmp_path / "b")]
-    assert main(args) == 0
-    assert capsys.readouterr().out.splitlines() == ["schema 0 -> 1"]
+    media = tmp_path / "media"
+    media.mkdir()
+    (media / ".reels-hub-root").write_text("test\n", encoding="utf-8")
+    monkeypatch.setenv("REELS_HUB_HOST_MEDIA_ROOT", "/Users/test/ReelsHub")
+    monkeypatch.setenv("REELS_HUB_MEDIA_ROOT", str(media))
+    monkeypatch.setenv("REELS_HUB_DATA_DIR", str(tmp_path / "data"))
+    assert main(["migrate"]) == 0
+    assert capsys.readouterr().out.splitlines() == [
+        "schema 0 -> 1",
+    ]
+    assert main(["migrate"]) == 0
+    assert capsys.readouterr().out.splitlines() == ["schema 1 -> 1"]
+
+
+def test_migrate_refuses_when_the_media_folder_is_not_mounted(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setenv("REELS_HUB_HOST_MEDIA_ROOT", "/Users/test/ReelsHub")
+    monkeypatch.setenv("REELS_HUB_MEDIA_ROOT", str(tmp_path / "missing"))
+    monkeypatch.setenv("REELS_HUB_DATA_DIR", str(tmp_path / "data"))
+    assert main(["migrate"]) == 1
+    assert "isn't mounted" in capsys.readouterr().err
+    assert not (tmp_path / "data").exists()

@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Settings from environment variables; the Hub refuses to start unless `REELS_HUB_HOST_MEDIA_ROOT` is an absolute Mac path. The media folder marker gates migrations and the worker; `/health` reports schema, media, disk, job counts and git SHA (503 only if the DB or the marker is missing). No change to the daily flow yet.
 - Background jobs: a job queue in the database and a worker that runs one job at a time inside the Hub; the daily database backup (14 copies kept, plus every pre-migration copy) runs by itself. No change to the daily flow yet.
 - Database: numbered forward-only migrations with a backup before each pending migration (`reels-hub migrate`); first schema covers projects, shoots, takes, devices, clips, the job queue and the agent log. No change to the daily flow yet.
 - Release workflow: every merge to `main` builds the linux/arm64 image and pushes `ghcr.io/ai-slop-code/reels-hub` (commit SHA and `latest`); a `v*` tag pushes that version too. No change to the daily flow yet.
