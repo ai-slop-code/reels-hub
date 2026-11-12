@@ -16,7 +16,8 @@ Needs [uv](https://docs.astral.sh/uv/) (Python 3.12 is picked up from `.python-v
 git config core.hooksPath .githooks   # once per clone: refuses pushes to main (R119)
 uv sync
 make test                             # ruff, mypy and pytest; CI runs the same target
-uv run reels-hub serve                # http://127.0.0.1:8787/health
+uv run reels-hub serve --db "$HOME/.cache/reels-hub-dev/hub.sqlite" \
+  --backup-dir "$HOME/.cache/reels-hub-dev/backups"   # migrates, runs the worker; http://127.0.0.1:8787/health
 ```
 
 Container tests need Podman (or Docker on CI). On the build machine set `REELS_HUB_INSECURE_TLS=1` (R125); the npm step is then skipped when the registry is blocked, and CI runs the full check:

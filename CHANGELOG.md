@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Background jobs: a job queue in the database and a worker that runs one job at a time inside the Hub; the daily database backup (14 copies kept, plus every pre-migration copy) runs by itself. No change to the daily flow yet.
 - Database: numbered forward-only migrations with a backup before each pending migration (`reels-hub migrate`); first schema covers projects, shoots, takes, devices, clips, the job queue and the agent log. No change to the daily flow yet.
 - Release workflow: every merge to `main` builds the linux/arm64 image and pushes `ghcr.io/ai-slop-code/reels-hub` (commit SHA and `latest`); a `v*` tag pushes that version too. No change to the daily flow yet.
 - Container image: multi-stage `Containerfile` (HyperFrames 0.9.39 in a node stage, arm64 runtime with ffmpeg and Debian Chromium, test stage); `make test-container` builds it, runs the in-image tests and a smoke test of `/health` in an isolated container; CI runs it. No change to the daily flow.

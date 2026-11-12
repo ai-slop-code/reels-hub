@@ -119,7 +119,7 @@ From 1 Dec, deploy to the run machine only when 2 approved reels are in the buff
   - Spec: §18, §21, §23.6, R18, R61. Depends on: 0.1.
   - Tests: applies to an empty DB; second start is a no-op; backup only when pending; failed integrity check → no rename; FTS5 is available.
   - Verify: `uv run reels-hub migrate` against a temp dir.
-- [ ] **0.5 `feature/job-worker`**
+- [x] **0.5 `feature/job-worker`**
   - Scope: `job` API (enqueue, claim, progress, done/failed with error); worker loop started with the app, one heavy job at a time; `running` jobs re-queued on start; on SIGTERM kill the subprocess and set the job back to `queued`; a timer that enqueues catch-up work. First periodic job: daily DB backup when the last is older than 24 h (keep 14 daily plus all `pre-*`).
   - Spec: §4, §21, §23.4, §23.6, R13, R61. Depends on: 0.4.
   - Tests: claim order; re-queue on restart; failure recorded; backup catch-up and retention (fake clock).
