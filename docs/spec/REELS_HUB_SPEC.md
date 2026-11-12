@@ -1445,7 +1445,7 @@ podman run -d --name reels-hub --restart=always --stop-timeout=60 -p 127.0.0.1:8
 
 ### 23.6 Image, release, deploy and backups
 - **Image:** multi-stage `Containerfile`, `linux/arm64` only (§23.0). Stages:
-  - `node`: `node:22-bookworm-slim`, `npm ci` with `hyperframes` pinned to an exact version in `package-lock.json`; never `npx` at runtime.
+  - `node`: `node:22-bookworm-slim`, `npm ci` with `hyperframes` pinned to an exact version in `package-lock.json` (0.9.39 at the start of the build, R126; upgrades only on their own `chore/` branch); never `npx` at runtime.
   - `runtime`: `python:3.12-slim-bookworm` pinned by digest; apt `ffmpeg chromium fonts-noto-core` with `--no-install-recommends` (OFL fonts only, §10.1); `PUPPETEER_SKIP_DOWNLOAD=1` and Chromium at `/usr/bin/chromium` passed to HyperFrames (Puppeteer's bundled Chrome may have no linux-arm64 build; check with `hyperframes doctor`); `uv sync --frozen --no-dev` in a layer before `COPY src/`, with a uv cache mount; `opencv-python-headless`; torch, if needed, from the CPU index `https://download.pytorch.org/whl/cpu`.
   - `test`: `FROM runtime` + dev dependencies + `tests/`, never shipped.
   - A `.containerignore` excludes `.git`, `.venv`, `node_modules`, `dist/` and large fixtures. Labels `org.opencontainers.image.version` and `org.opencontainers.image.revision` (git SHA) are shown by `/health`.
@@ -1634,6 +1634,8 @@ Owner's answers before the build (R119–R122 in [`docs/decisions.md`](../decisi
 
 #### Build decisions (dev)
 - **Public repo, protected `main`, public image (§23.3, §23.6, §24.1):** the repo is public; GitHub branch protection on `main` (PR required, check `test` on an up-to-date branch, admins included, linear history, no force-push or deletion) replaces the "no enforced protection" part of R119; the GHCR image is public, so the run machine needs no read token (R124).
+- **Local image builds on the build machine (§23.6, §24.2):** opt-in `REELS_HUB_INSECURE_TLS=1` turns off TLS verification for downloads and pulls during local builds only (never in CI, `deploy.sh` or the shipped image); the npm registry is blocked on that network by policy, so the full image build and container tests are proven in CI (R125).
+- **HyperFrames pinned (§23.6):** exact version 0.9.39 in `package-lock.json`; upgrades only deliberately (R126).
 
 ### v0.5 (2026-11-12)
 Applied from the review decision log in [`docs/decisions.md`](../decisions.md):

@@ -15,17 +15,17 @@ You build **Reels Hub**: a local-first app (one FastAPI process with a web UI, a
 1. This file.
 2. `docs/BUILD_PLAN.md`: find the first unchecked item (`- [ ]`) in the current phase. Check its "depends on" and any `Q:` or 🔑 marks.
 3. Only the spec sections that item cites: `docs/spec/REELS_HUB_SPEC.md` (v0.6) and, for anything visual, captions or sound, `docs/spec/DESIGN_LANGUAGE.md` (v1.2).
-4. `docs/decisions.md` only when you need the reason behind a rule (D1–D10, R1–R124, later entries).
+4. `docs/decisions.md` only when you need the reason behind a rule (D1–D10, R1–R126, later entries).
 5. Background only, when a detail is missing: `docs/reviews/` (expert packets), `docs/reference/giro00/` (the reference reel).
 
 Run `git status` and `gh pr list` first: an earlier session may have left an open PR or a half-done branch. Finish that before starting anything new.
 
 ## Source of truth and spec changes
 - `docs/spec/` and `docs/decisions.md` are the only source of truth. The old handoff repo is a frozen archive; don't use it.
-- D1–D10 and the owner's decisions R1–R124 (R119–R124: bootstrap and setup decisions) are **settled. Don't reopen them.** Entries marked `deferred` stay out of scope unless the owner brings them back.
+- D1–D10 and the owner's decisions R1–R126 (R119–R126: bootstrap and setup decisions) are **settled. Don't reopen them.** Entries marked `deferred` stay out of scope unless the owner brings them back.
 - **Don't silently change behavior described in the spec.**
   - Typos, broken links and clarifications that don't change behavior: fix them in the same PR.
-  - Behavior changes: stop and ask the owner. If approved, in the same PR: update the spec, add a decision-log entry to `docs/decisions.md` (next number after the last one, starting at R125; "From: dev"; date; reason) and add a line to the spec's §28 changelog under a new "v0.6.x (dev)" heading.
+  - Behavior changes: stop and ask the owner. If approved, in the same PR: update the spec, add a decision-log entry to `docs/decisions.md` (next number after the last one, starting at R127; "From: dev"; date; reason) and add a line to the spec's §28 changelog under a new "v0.6.x (dev)" heading.
 - Where the spec is silent on an implementation detail (file layout, function names, internal APIs), choose the simplest option and note it in the PR body. That is not a behavior change.
 
 ## Work loop (one branch per item)
@@ -116,6 +116,7 @@ Before stopping, finish and merge the current branch if it is complete and green
 
 ## Machine safety (build machine)
 The build machine is a **shared developer Mac**. Its Podman machine also runs unrelated containers (e.g. `ferl-stage01-postgres`, `ferl-stage01-postgres18`, Atlassian MCP containers).
+- **Network (R125):** this Mac's network intercepts HTTPS and blocks the npm registry (HTTP 403). For local container builds set `REELS_HUB_INSECURE_TLS=1` (TLS verification off for that build only). Never put insecure TLS settings into CI, `deploy.sh`, the final image or global config. If npm is needed locally, report the block; CI is the authority.
 - Never stop, remove, prune or modify containers, volumes, images, networks or secrets you didn't create in the current test run. Clean up only by exact name or tag.
 - Never run `podman system prune`, `podman image prune`, `podman volume prune`, `podman container prune`, or `podman machine stop|rm|reset|set|init`. If the Podman machine is down or too small, ask.
 - Never read, write or list `~/Movies`, `~/Pictures` or any real media on the build machine. Temp files go under `$HOME/.cache/reels-hub-test/` or the repo's ignored folders.
