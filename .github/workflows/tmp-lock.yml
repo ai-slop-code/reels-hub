@@ -1,0 +1,24 @@
+name: tmp hyperframes lock (remove before merge)
+
+on:
+  push:
+    branches: [chore/container-image]
+
+permissions:
+  contents: read
+
+jobs:
+  lock:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+      - run: cat package-lock.json | head -30
+      - uses: actions/upload-artifact@v4
+        with:
+          name: package-lock
+          path: package-lock.json
