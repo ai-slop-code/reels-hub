@@ -15,7 +15,7 @@ Needs [uv](https://docs.astral.sh/uv/) (Python 3.12 is picked up from `.python-v
 ```bash
 git config core.hooksPath .githooks   # once per clone: refuses pushes to main (R119)
 uv sync
-make test                             # ruff, mypy and pytest; CI runs the same target
+make test                             # fixtures, ruff, mypy and pytest; CI runs the same target (needs ffmpeg)
 export REELS_HUB_HOST_MEDIA_ROOT="$HOME/.cache/reels-hub-dev/media"   # absolute, never ~ (spec §23.2)
 export REELS_HUB_MEDIA_ROOT="$HOME/.cache/reels-hub-dev/media"
 export REELS_HUB_DATA_DIR="$HOME/.cache/reels-hub-dev/data"

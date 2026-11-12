@@ -61,4 +61,4 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     flags=""; \
     if [ "$INSECURE_TLS" = 1 ]; then flags="--allow-insecure-host pypi.org --allow-insecure-host files.pythonhosted.org"; fi; \
     uv sync --frozen $flags
-CMD ["pytest", "-m", "container"]
+CMD ["sh", "-c", "sh tests/fixtures/make_fixtures.sh && pytest -m container"]
