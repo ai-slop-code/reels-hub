@@ -12,6 +12,8 @@ from dataclasses import dataclass
 from importlib import resources
 from pathlib import Path
 
+from reels_hub.backup import BackupError, write_backup
+
 DEFAULT_DB_PATH = Path("/data/reels-hub.sqlite")
 DEFAULT_BACKUP_DIR = Path("/media/_backups/db")
 
@@ -68,15 +70,6 @@ def connect(path: Path) -> sqlite3.Connection:
     return conn
 
 
-def integrity_check(path: Path) -> str:
-    check = sqlite3.connect(path)
-    try:
-        row = check.execute("PRAGMA integrity_check").fetchone()
-    finally:
-        check.close()
-    return str(row[0])
-
-
 def migrate(
     db_path: Path,
     backup_dir: Path,
@@ -113,19 +106,11 @@ def _backup_before_migrating(
     to_version: int,
     when: dt.datetime,
 ) -> Path:
-    backup_dir.mkdir(parents=True, exist_ok=True)
-    final = backup_dir / f"pre-migrate-{from_version}-{to_version}-{when:%Y%m%d-%H%M}.sqlite"
-    if final.exists():
-        raise MigrationError(f"{final.name} already exists; wait a minute and run migrate again")
-    tmp = final.with_name(final.name + ".tmp")
-    tmp.unlink(missing_ok=True)
-    conn.execute("VACUUM INTO ?", (str(tmp),))
-    verdict = integrity_check(tmp)
-    if verdict != "ok":
-        tmp.unlink(missing_ok=True)
-        raise MigrationError(f"backup failed PRAGMA integrity_check ({verdict}); no migration ran")
-    tmp.replace(final)
-    return final
+    name = f"pre-migrate-{from_version}-{to_version}-{when:%Y%m%d-%H%M}.sqlite"
+    try:
+        return write_backup(conn, backup_dir, name)
+    except BackupError as exc:
+        raise MigrationError(f"no migration ran: {exc}") from exc
 
 
 def _apply(conn: sqlite3.Connection, migration: Migration, when: dt.datetime) -> None:

@@ -19,9 +19,13 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="reels-hub", description="Reels Hub")
     commands = parser.add_subparsers(dest="command", required=True)
 
-    serve = commands.add_parser("serve", help="run the web app")
+    serve = commands.add_parser(
+        "serve", help="migrate the database, then run the web app and worker"
+    )
     serve.add_argument("--host", default=DEFAULT_HOST)
     serve.add_argument("--port", type=int, default=DEFAULT_PORT)
+    serve.add_argument("--db", type=Path, default=DEFAULT_DB_PATH)
+    serve.add_argument("--backup-dir", type=Path, default=DEFAULT_BACKUP_DIR)
 
     db = commands.add_parser("migrate", help="back up, then apply pending database migrations")
     db.add_argument("--db", type=Path, default=DEFAULT_DB_PATH)
@@ -38,7 +42,16 @@ def main(argv: Sequence[str] | None = None) -> int:
     elif args.command == "serve":
         import uvicorn
 
-        uvicorn.run("reels_hub.app:app", host=args.host, port=args.port)
+        from reels_hub.app import create_app
+        from reels_hub.jobs import Worker
+
+        try:
+            migrate(args.db, args.backup_dir)
+        except (MigrationError, OSError) as exc:
+            print(f"reels-hub serve: {exc}", file=sys.stderr)
+            return 1
+        worker = Worker(args.db, args.backup_dir)
+        uvicorn.run(create_app(worker=worker), host=args.host, port=args.port)
     elif args.command == "migrate":
         try:
             result = migrate(args.db, args.backup_dir)

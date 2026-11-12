@@ -27,8 +27,14 @@ fi
 cleanup() {
   "$ENGINE" rm -f "$NAME" >/dev/null 2>&1 || true
   "$ENGINE" volume rm -f "$VOLUME" >/dev/null 2>&1 || true
+  # The container writes as root into the bind mount (backups, proxies), so the files are cleared
+  # from inside a container; the host user may not own them.
+  if [ -d "$MEDIA" ] && "$ENGINE" image inspect "$IMG_RUNTIME" >/dev/null 2>&1; then
+    "$ENGINE" run --rm --entrypoint sh -v "$MEDIA:/media" "$IMG_RUNTIME" \
+      -c 'rm -rf /media/* /media/.[!.]* 2>/dev/null; true' >/dev/null 2>&1 || true
+  fi
+  rm -rf "$MEDIA" 2>/dev/null || true
   "$ENGINE" rmi -f "$IMG_TEST" "$IMG_RUNTIME" "$IMG_NODE" >/dev/null 2>&1 || true
-  rm -rf "$MEDIA"
 }
 trap cleanup EXIT
 

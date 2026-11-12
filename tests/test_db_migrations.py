@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from reels_hub import db
+from reels_hub import backup, db
 from reels_hub.cli import main
 from reels_hub.db import Migration, MigrationError, bundled_migrations, connect, migrate
 
@@ -64,7 +64,7 @@ def test_failed_integrity_check_renames_nothing_and_migrates_nothing(
 ) -> None:
     db_path, backups = tmp_path / "hub.sqlite", tmp_path / "backups"
     migrate(db_path, backups, migrations=[V1], now=lambda: NOW)
-    monkeypatch.setattr(db, "integrity_check", lambda path: "*** corrupt ***")
+    monkeypatch.setattr(backup, "integrity_check", lambda path: "*** corrupt ***")
     with pytest.raises(MigrationError, match="integrity_check"):
         migrate(db_path, backups, migrations=[V1, V2], now=lambda: NOW)
     assert list(backups.iterdir()) == []
