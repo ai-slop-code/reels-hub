@@ -34,6 +34,7 @@ cleanup() {
       -c 'rm -rf /media/* /media/.[!.]* 2>/dev/null; true' >/dev/null 2>&1 || true
   fi
   rm -rf "$MEDIA" 2>/dev/null || true
+  rm -f "$HOME/.cache/reels-hub-test/$RUN_ID.health.json"
   "$ENGINE" rmi -f "$IMG_TEST" "$IMG_RUNTIME" "$IMG_NODE" >/dev/null 2>&1 || true
 }
 trap cleanup EXIT
@@ -63,13 +64,13 @@ build test "$IMG_TEST"
 "$ENGINE" run --rm "$IMG_TEST"
 
 echo "==> smoke test of the runtime image"
-mkdir -p "$MEDIA"
+mkdir -p "$MEDIA" "$HOME/.cache/reels-hub-test"
 "$ENGINE" volume create "$VOLUME" >/dev/null
 "$ENGINE" run -d --name "$NAME" -p 127.0.0.1::8787 \
   -e REELS_HUB_HOST_MEDIA_ROOT="$MEDIA" -v "$MEDIA:/media" -v "$VOLUME:/data" "$IMG_RUNTIME" >/dev/null
 PORT="$("$ENGINE" port "$NAME" 8787 | head -n 1 | sed 's/.*://')"
 
-HEALTH="$MEDIA/health.json"
+HEALTH="$HOME/.cache/reels-hub-test/$RUN_ID.health.json"   # outside the media mount: the folder must stay empty
 i=0
 until curl -fsS "http://127.0.0.1:$PORT/health" >"$HEALTH" 2>/dev/null; do
   i=$((i + 1))
