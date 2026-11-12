@@ -56,6 +56,7 @@
                 "multilayer": 0
             },
             "tags": {
+                "creation_time": "2026-11-12T10:00:00.000000Z",
                 "language": "und",
                 "handler_name": "VideoHandler",
                 "encoder": "Lavc63.1.102 libx264",
@@ -110,6 +111,7 @@
                 "multilayer": 0
             },
             "tags": {
+                "creation_time": "2026-11-12T10:00:00.000000Z",
                 "language": "und",
                 "handler_name": "SoundHandler"
             }
@@ -152,6 +154,7 @@
                 "multilayer": 0
             },
             "tags": {
+                "creation_time": "2026-11-12T10:00:00.000000Z",
                 "language": "eng",
                 "handler_name": "TimeCodeHandler",
                 "timecode": "10:00:00:00"
@@ -167,16 +170,17 @@
         "format_long_name": "QuickTime / MOV",
         "start_time": "0.000000",
         "duration": "4.000000",
-        "size": "272528",
-        "bit_rate": "545056",
+        "size": "272600",
+        "bit_rate": "545200",
         "probe_score": 100,
         "tags": {
             "major_brand": "isom",
             "minor_version": "512",
             "compatible_brands": "isomiso2avc1mp41",
+            "model": "ILME-FX30",
             "timecode": "10:00:00:00",
             "make": "Sony",
-            "model": "ILME-FX30",
+            "creation_time": "2026-11-12T10:00:00.000000Z;2026-11-12T10:00:00.000000Z",
             "encoder": "Lavf63.1.102"
         }
     }

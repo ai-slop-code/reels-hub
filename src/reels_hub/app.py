@@ -10,14 +10,26 @@ from reels_hub.db import migrate
 from reels_hub.health import health_report
 from reels_hub.jobs import Worker
 from reels_hub.paths import ensure_media_marker
+from reels_hub.watcher import SCAN_KIND, Watcher
+
+SCAN_EVERY_SECONDS = 10.0
 
 
-def prepare_worker(settings: Settings) -> Worker | None:
-    """Migrate the database and build the worker, unless the media folder isn't mounted."""
-    if not ensure_media_marker(settings.media_root):
-        return None
-    migrate(settings.db_path, settings.backup_dir)
-    return Worker(settings.db_path, settings.backup_dir)
+def build_worker(settings: Settings) -> Worker:
+    """The worker waits while the media folder isn't mounted, then migrates and scans every 10 s."""
+    watcher = Watcher(settings)
+
+    def prepare() -> None:
+        migrate(settings.db_path, settings.backup_dir)
+
+    return Worker(
+        settings.db_path,
+        settings.backup_dir,
+        handlers={SCAN_KIND: watcher.handle},
+        ready=lambda: ensure_media_marker(settings.media_root),
+        prepare=prepare,
+        schedules={SCAN_KIND: SCAN_EVERY_SECONDS},
+    )
 
 
 def create_app(*, settings: Settings, worker: Worker | None = None) -> FastAPI:

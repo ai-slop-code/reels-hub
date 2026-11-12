@@ -239,3 +239,29 @@ def test_app_lifespan_starts_and_stops_the_worker(
         assert worker.running
         assert client.get("/health").status_code == 200
     assert not worker.running
+
+
+def test_the_worker_waits_for_the_media_folder_then_prepares_and_schedules_scans(
+    db_path: Path, backups: Path
+) -> None:
+    ready = {"mounted": False}
+    prepared: list[str] = []
+    scans: list[str] = []
+    worker = Worker(
+        db_path,
+        backups,
+        handlers={"scan": lambda ctx: scans.append("scan")},
+        clock=FixedClock(T0),
+        poll_seconds=0.02,
+        ready=lambda: ready["mounted"],
+        prepare=lambda: prepared.append("migrated"),
+        schedules={"scan": 0.05},
+    )
+    worker.start()
+    time.sleep(0.2)
+    assert prepared == []
+    assert scans == []
+    ready["mounted"] = True
+    wait_for(lambda: len(scans) >= 2)
+    worker.stop()
+    assert prepared == ["migrated"]

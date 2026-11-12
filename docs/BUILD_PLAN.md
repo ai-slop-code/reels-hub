@@ -134,7 +134,7 @@ From 1 Dec, deploy to the run machine only when 2 approved reels are in the buff
   - Spec: §5.1 step 2, §24.2, R69, R70, R120. Depends on: 0.2.
   - Tests: parser on stored ffprobe JSON (host); probing every fixture inside the image (`-m container`).
   - Verify: `make fixtures` is reproducible; `git status` shows no generated media; `make test-container` green.
-- [ ] **0.8 `feature/watcher`**
+- [x] **0.8 `feature/watcher`**
   - Scope: polling watcher (10 s, configurable) over `/media/<project>/raw/{sony,dji,phone,audio}` for folders in `project_media_folder` (a minimal `reels-hub project add <id> --folder <rel>` until 9.1); register only after size and mtime are stable across 2 polls ≥ 10 s apart and ffprobe succeeds; ignore list; pause if the marker is missing (mark nothing offline); xxh3 over first 1 MiB + last 1 MiB + size; duplicates and moves re-attached by hash + duration; `availability`, `volume_id`; DJI `.LRF` and `.WAV` attached (WAV as alternate audio); a `scan_now()` for Add footage; enqueue probe and proxy jobs; shoot = recording day per project (takes come in 1.7).
   - Spec: §5.1, §23.2, §23.4, R27, R62. Depends on: 0.5–0.7.
   - Tests: a growing file isn't registered until stable (fake clock); ignore patterns; missing marker pauses; move re-attach; duplicate detection.
