@@ -1,0 +1,12 @@
+#!/bin/sh
+# Refuses any push to main (R119). Tags and other branches pass.
+# Enable once per clone: git config core.hooksPath .githooks
+
+status=0
+while read -r local_ref local_sha remote_ref remote_sha; do
+    if [ "$remote_ref" = "refs/heads/main" ]; then
+        echo "pre-push: pushing to main is not allowed; open a pull request from a branch (R119)." >&2
+        status=1
+    fi
+done
+exit "$status"
