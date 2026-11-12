@@ -10,6 +10,7 @@ from reels_hub.db import migrate
 from reels_hub.health import health_report
 from reels_hub.jobs import Worker
 from reels_hub.paths import ensure_media_marker
+from reels_hub.proxies import PROXY_KIND, proxy_handler
 from reels_hub.watcher import SCAN_KIND, Watcher
 
 SCAN_EVERY_SECONDS = 10.0
@@ -25,7 +26,7 @@ def build_worker(settings: Settings) -> Worker:
     return Worker(
         settings.db_path,
         settings.backup_dir,
-        handlers={SCAN_KIND: watcher.handle},
+        handlers={SCAN_KIND: watcher.handle, PROXY_KIND: proxy_handler(settings)},
         ready=lambda: ensure_media_marker(settings.media_root),
         prepare=prepare,
         schedules={SCAN_KIND: SCAN_EVERY_SECONDS},

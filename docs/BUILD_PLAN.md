@@ -139,7 +139,7 @@ From 1 Dec, deploy to the run machine only when 2 approved reels are in the buff
   - Spec: §5.1, §23.2, §23.4, R27, R62. Depends on: 0.5–0.7.
   - Tests: a growing file isn't registered until stable (fake clock); ignore patterns; missing marker pauses; move re-attach; duplicate detection.
   - Verify: smoke test copies a fixture into the temp media folder and sees it registered with the right host path.
-- [ ] **0.9 `feature/proxies`**
+- [x] **0.9 `feature/proxies`**
   - Scope: proxy job with the exact settings of spec §5.1 step 3 (540 px high, H.264 High CRF 23, keyframe every 0.5 s, source fps, timecode, AAC 128 kbps 48 kHz with all channels, faststart) into `/data`; contact sheet every 2 s; helper that reads single frames from the master; temp name then rename.
   - Spec: §5.1, §21, R65. Depends on: 0.8.
   - Tests (inside the image): proxy height, keyframe interval, audio channel count, timecode, faststart.
