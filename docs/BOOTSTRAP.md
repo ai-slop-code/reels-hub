@@ -1,5 +1,7 @@
 # Reels Hub developer kit
 
+> **Update 2026-11-12 (R124):** the repo is now **public**, `main` is protected by GitHub (PR + green `test` check, admins included), and the image is public, so the run machine needs no GHCR token. Steps below that mention a private repo, missing branch protection or a read token are superseded.
+
 This kit lets a fresh AI developer agent (Claude Code or OpenCode) build **Reels Hub** in a new private GitHub repo, `ai-slop-code/reels-hub`, phase by phase from spec v0.6, with few questions. At bootstrap it is copied into that repo, together with the spec, the design language and the decision log. From then on `reels-hub/docs/` is the only source of truth, and this handoff repo is a frozen archive.
 
 > After bootstrap this file lives at `docs/BOOTSTRAP.md` in reels-hub. Links in the kit are written for that layout, so they resolve only after the copy.
@@ -48,7 +50,7 @@ How the agent works: one branch per plan item → PR → waits for GitHub Action
 7. **Start the first agent session** in `/Users/S38RA/Personal/repos/` (Claude Code or OpenCode) with `dev-kit/prompts/01-bootstrap.prompt.md` from this handoff repo (it isn't in reels-hub yet).
 8. **Watch the first PR's CI.** The CI job runs on `ubuntu-24.04-arm` (R121: arm64 runners work for this repo). If it ever fails to get a runner, the agent stops and reports; the fallback is QEMU emulation for the arm64 image.
 9. **On your own clones of reels-hub** (if any), enable the push guard once: `git config core.hooksPath .githooks`.
-10. **After the first merge to `main` with the release workflow (plan item 0.3)**: open the package page for `reels-hub` under the ai-slop-code org → Packages. Check it is **private** and linked to the repo (it should be, via the `org.opencontainers.image.source` label).
+10. **After the first merge to `main` with the release workflow (plan item 0.3)**: open the package page for `reels-hub` under the ai-slop-code org → Packages. Set it to **public** if it isn't (R124) and check it is linked to the repo (it should be, via the `org.opencontainers.image.source` label).
 11. **Approve the archive note** in the handoff repo (agent step 7 below).
 
 ### Agent does (prompt `01-bootstrap`)
@@ -107,7 +109,7 @@ The full table, with a status column for you to fill in, is in [BUILD_PLAN.md](B
 | When | Input |
 |---|---|
 | End of phase 0 (~16 Nov) | **Run machine** set up per `docs/RUNBOOK.md` (written in plan item 0.10; spec §23.3): confirm the Podman 6 version and free disk; Podman machine `applehv`, 8 CPUs, 12 GB, 100 GB; `~/Movies/ReelsHub`; launchd agent; `tmutil` exclusion |
-| End of phase 0 | **GHCR read token**: a classic personal access token with only `read:packages` (GitHub Packages doesn't take fine-grained tokens), stored in the run machine's Keychain (`security add-generic-password -s reels-hub-ghcr -a lubosba -w`) |
+| End of phase 0 | ~~**GHCR read token**~~ not needed: the image is public (R124). |
 | End of phase 0 | Podman secrets `meta_token`, `anthropic_key`, `hf_token` exist (placeholders until the real values; the run command needs all three) |
 | End of phase 0 | Giro_00 masters hard-linked into `~/Movies/ReelsHub/giro00/raw/` (R67), and the Giro_00 graphics copied from the handoff archive into `~/Movies/ReelsHub/giro00/graphics/` (R120); the "done when" timing; a host path imported in Edits; the **Edits 25p check** (spec §14, R70) |
 | Phase 1 (~16–18 Nov) | **ASR reference transcript**: ~5 min of C0031 + one DJI excerpt, corrected by ear (~1 h), in `/data/bench/` on the run machine, never in Git (R81); then run the benchmark command the agent gives you |

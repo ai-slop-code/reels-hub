@@ -180,3 +180,4 @@ New entries start at R124 (From: owner or dev; see `AGENTS.md`).
 
 | # | Proposal | From | Decision | Reason | Date |
 |---|---|---|---|---|---|
+| R124 | **Public repo, protected `main`, public image** (§24.1, §23.3, §23.6): `ai-slop-code/reels-hub` is public. GitHub branch protection on `main`: pull request required, check `test` must pass on an up-to-date branch, admins included, linear history, no force-push or deletion; no review approval required (the agent merges its own PRs when green). The GHCR image is public, so the run machine pulls without a token. The chained merge command and the pre-push hook stay | owner | accepted | Owner made the repo public. Public repos get branch protection on GitHub Free, which supersedes the "no enforced protection" part of R119 and the "private" in R123. The image holds only code, no footage or data | 2026-11-12 |

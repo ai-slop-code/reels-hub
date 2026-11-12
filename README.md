@@ -21,7 +21,7 @@ uv run reels-hub serve                # http://127.0.0.1:8787/health
 
 ## Push guard
 
-GitHub doesn't protect `main` for this private repo (GitHub Free, R119). Every change goes through a branch and a pull request, and is merged only with:
+`main` is protected on GitHub (R124): a pull request with a green `test` check on an up-to-date branch is required, also for admins. Every change goes through a branch and a pull request, and is merged with:
 
 ```bash
 gh pr checks --watch --fail-fast && gh pr merge --squash --delete-branch
