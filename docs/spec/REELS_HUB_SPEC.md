@@ -1309,7 +1309,7 @@ On demand only: the producer triggers an AI critique of a render + editors_notes
 ## 22. Security, privacy and safety
 
 - **Local only.** The MCP server and UI bind to localhost; the MCP endpoint requires a token.
-- **Secrets** (Meta API token, Anthropic API key, Hugging Face token for gated model downloads) are passed as Podman secrets, never baked into the image, stored in the DB or written to logs. The read-only GitHub token for pulling images (`read:packages`) lives in the macOS Keychain on the run machine (§23.6).
+- **Secrets** (Meta API token, Anthropic API key, Hugging Face token for gated model downloads) are passed as Podman secrets, never baked into the image, stored in the DB or written to logs. The image is public, so pulling it needs no GitHub token (R124, §23.6).
 - **Ports** are published on `127.0.0.1` only; the MCP and UI aren't reachable from the network.
 - **Footage privacy:** do-not-use ranges and private talk stay excluded from agent search and are never sent to any external service. Exclusions made by a person can only be lifted by that person (§5.3).
 - **Voice prints are for speaker labels only.** They are never exported, never sent to an external service, and never used for speech synthesis, voice cloning or lip-sync. No tool in the Hub generates Katarina's or Ľuboš's voice or likeness.
@@ -1408,12 +1408,9 @@ printf '%s' "$ANTHROPIC_API_KEY" | podman secret create anthropic_key -
 printf '%s' "$HF_TOKEN" | podman secret create hf_token -
 ```
 ```bash
-security add-generic-password -s reels-hub-ghcr -a lubosba -w
-```
-```bash
 tmutil addexclusion ~/.local/share/containers
 ```
-The `security` command stores the read-only GitHub token (`read:packages`) in the macOS Keychain; `deploy.sh` uses it to log in to `ghcr.io` when needed. The `tmutil` exclusion keeps Time Machine from copying the VM disk on every run; the real backup is in `/media/_backups` (§23.6). Then install the login agent from the repo (`deploy/sk.reelshub.podman.plist` into `~/Library/LaunchAgents/`) and run `deploy.sh <tag>` (§23.6).
+The image is public (R124), so pulling it needs no GitHub login or token. The `tmutil` exclusion keeps Time Machine from copying the VM disk on every run; the real backup is in `/media/_backups` (§23.6). Then install the login agent from the repo (`deploy/sk.reelshub.podman.plist` into `~/Library/LaunchAgents/`) and run `deploy.sh <tag>` (§23.6).
 
 The **only** copy of the run command lives in `deploy.sh`; shown here for reference:
 ```bash
@@ -1457,7 +1454,7 @@ podman run -d --name reels-hub --restart=always --stop-timeout=60 -p 127.0.0.1:8
   - On every **pull request**, GitHub Actions runs the full test suite (§24.2). A green run is required to merge (§24.1).
   - On every **merge to `main`**, GitHub Actions builds the `linux/arm64` image on the native `ubuntu-24.04-arm` runner (QEMU emulation only as a fallback if that ever fails; R121) and pushes it to `ghcr.io/ai-slop-code/reels-hub`, tagged with the commit SHA and `latest`, plus `vX.Y.Z` when a release is tagged.
 - **Deploy (run machine):** one small script, `deploy.sh <tag>`, kept in the repo (`deploy/`) and holding the only `podman run` command (§23.3). It:
-  1. logs in to `ghcr.io` with the Keychain token if needed and pulls `ghcr.io/ai-slop-code/reels-hub:<tag>`;
+  1. pulls `ghcr.io/ai-slop-code/reels-hub:<tag>` (public image, no login; R124);
   2. takes a DB backup (`pre-update-*`, see Backups);
   3. remembers the running tag, stops (`-t 60`) and removes the container, and runs the new tag;
   4. waits up to 120 s for `/health` to report the new version;
@@ -1483,7 +1480,7 @@ podman run -d --name reels-hub --restart=always --stop-timeout=60 -p 127.0.0.1:8
    - `fix/<short-name>` for bug fixes
    - `chore/<short-name>` for tooling, docs, dependencies
 3. Work, commit and test on that branch only. Keep each branch to one feature.
-4. **Merge back to `main` only through a pull request, when the feature is finished and all tests pass** (full suite, not just the new tests). The GitHub Actions run on the pull request is the merge gate. The repo has no GitHub-enforced branch protection (GitHub Free, R119), so the gate is the chained command `gh pr checks --watch --fail-fast && gh pr merge --squash --delete-branch` (the merge runs only if the checks pass; never `gh pr merge` alone, never `--admin`), and a committed `.githooks/pre-push` hook (`git config core.hooksPath .githooks`) refuses direct pushes to `main`. Rebase on or merge the latest `main` first so CI tests the combined code. If two branches added a migration with the same number, renumber yours after rebasing.
+4. **Merge back to `main` only through a pull request, when the feature is finished and all tests pass** (full suite, not just the new tests). The GitHub Actions run on the pull request is the merge gate. The repo is public and `main` is protected by GitHub (R124): a pull request is required, the CI check `test` must pass on a branch that is up to date with `main`, the rules apply to admins too, history stays linear, and force-pushes and deletion are blocked. Merge with the chained command `gh pr checks --watch --fail-fast && gh pr merge --squash --delete-branch` (never `--admin`); the committed `.githooks/pre-push` hook (`git config core.hooksPath .githooks`) also refuses direct pushes to `main` locally. Rebase on or merge the latest `main` first so CI tests the combined code. If two branches added a migration with the same number, renumber yours after rebasing.
 5. Delete the branch after merging. Tag releases on `main` (`v0.1.0`, …); CI pushes the image for every merge and a version tag for every release (§23.6).
 6. If the suite fails on `main` after a merge, fix it on a `fix/` branch immediately; nothing else merges until `main` is green.
 
@@ -1634,6 +1631,9 @@ Owner's answers before the build (R119–R122 in [`docs/decisions.md`](../decisi
 - **Native arm64 CI (§23.6, §27):** `ubuntu-24.04-arm` for CI and the release build, QEMU only as a fallback (R121).
 - **Dependencies (§21):** the kit's pre-approved dependency list is approved (R122).
 - **Repository (§21, §23.6):** the code repo is `ai-slop-code/reels-hub` (private, GitHub Free org), images at `ghcr.io/ai-slop-code/reels-hub` (R123).
+
+#### Build decisions (dev)
+- **Public repo, protected `main`, public image (§23.3, §23.6, §24.1):** the repo is public; GitHub branch protection on `main` (PR required, check `test` on an up-to-date branch, admins included, linear history, no force-push or deletion) replaces the "no enforced protection" part of R119; the GHCR image is public, so the run machine needs no read token (R124).
 
 ### v0.5 (2026-11-12)
 Applied from the review decision log in [`docs/decisions.md`](../decisions.md):

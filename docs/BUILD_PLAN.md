@@ -50,11 +50,11 @@ From 1 Dec, deploy to the run machine only when 2 approved reels are in the buff
 
 | # | Input | Needed by | Status |
 |---|---|---|---|
-| I1 | GitHub: `gh` logged in as LubosBa (scopes `repo`, `workflow`); GitHub Free is fine, no enforced branch protection (R119) | Bootstrap | |
-| I2 | Repo `ai-slop-code/reels-hub` created (private), merge settings and Actions permissions done (`docs/BOOTSTRAP.md`) | Bootstrap | |
+| I1 | GitHub: `gh` logged in as LubosBa (scopes `repo`, `workflow`); GitHub Free; repo public with `main` protected (R124) | Bootstrap | |
+| I2 | Repo `ai-slop-code/reels-hub` created (public since R124), merge settings and Actions permissions done (`docs/BOOTSTRAP.md`) | Bootstrap | |
 | I3 | Answers to Q1, Q4, Q15 and the GitHub plan | Bootstrap | Done 2026-11-12 (R119–R123) |
 | I4 | Run machine: Podman 6 version and free disk confirmed; setup per `docs/RUNBOOK.md` (spec §23.3) | End of phase 0 | |
-| I5 | Read-only GHCR token (classic PAT, `read:packages` only) in the run machine's Keychain | End of phase 0 | |
+| I5 | ~~Read-only GHCR token on the run machine~~ not needed: the image is public (R124) | End of phase 0 | Not needed (R124) |
 | I6 | Podman secrets `meta_token`, `anthropic_key`, `hf_token` on the run machine; placeholders are fine until the real values exist (the run command needs all three) | End of phase 0 | |
 | I7 | Giro_00 masters hard-linked into `~/Movies/ReelsHub/giro00/raw/{sony,dji}` (spec §23.2, R67); Giro_00 graphics copied from the handoff archive (`reels/giro00-intro/graphics/`) into `~/Movies/ReelsHub/giro00/graphics/` (R120) | End of phase 0 | |
 | I8 | Phase 0 timing (≤ 30 min for a Giro_00-sized drop), Edits host-path import, **Edits 25p check** (which project rates, how 25p conforms; spec §14, R70) | End of phase 0 | |
@@ -112,7 +112,7 @@ From 1 Dec, deploy to the run machine only when 2 approved reels are in the buff
   - Scope: `.github/workflows/release.yml` on `ubuntu-24.04-arm` (R121): on push to `main`, build `linux/arm64` `runtime` and push `ghcr.io/ai-slop-code/reels-hub:<sha>` and `:latest`; on tag `v*`, push `:vX.Y.Z`. `permissions: contents: read, packages: write`; log in with `GITHUB_TOKEN`; label `org.opencontainers.image.source=https://github.com/ai-slop-code/reels-hub`.
   - Spec: §21, §23.6, R59. Depends on: 0.2.
   - Tests: none beyond CI; workflow lint by running it.
-  - Verify: after merge, `gh run list --workflow release.yml` is green; the package exists and is private (owner can confirm on GitHub).
+  - Verify: after merge, `gh run list --workflow release.yml` is green; the package exists and is **public**, linked to the repo (🔑 OWNER: a new GHCR package may start private; if so, set it to public once on its package settings page, R124).
 - [ ] **0.4 `feature/db-migrations`**
   - Scope: DB helper; migration runner over `src/reels_hub/migrations/NNNN_<name>.sql` with a `schema_version`; if a migration is pending, back up first (`VACUUM INTO` temp → `PRAGMA integrity_check` → rename to `/media/_backups/db/pre-migrate-<from>-<to>-YYYYMMDD-HHMM.sqlite`); `0001` creates the phase-0 tables (`project` minimal, `project_media_folder`, `shoot`, `take`, `device`, `clip`, `job`, `agent_log`). Later tables come with their phase.
   - Spec: §18, §21, §23.6, R18, R61. Depends on: 0.1.
@@ -144,7 +144,7 @@ From 1 Dec, deploy to the run machine only when 2 approved reels are in the buff
   - Tests (inside the image): proxy height, keyframe interval, audio channel count, timecode, faststart.
   - Verify: timing on real footage is measured by the owner at the phase end.
 - [ ] **0.10 `chore/deploy-backup-restore`**
-  - Scope: `deploy/deploy.sh <tag>` per spec §23.6 (Keychain login if needed, pull, `pre-update` backup, remember the running tag, stop `-t 60`, remove, run, wait ≤ 120 s for `/health` to show the new version, roll back to the backup and previous tag on failure) holding the **only** `podman run` (spec §23.3); `deploy.sh restore <file>` (Q5); `deploy/sk.reelshub.podman.plist`; name, volume, port and media overridable by env **for tests only**; `docs/RUNBOOK.md` for the owner (run-machine setup, first deploy, Giro_00 hard links, copying the Giro_00 graphics from the handoff archive into `~/Movies/ReelsHub/giro00/graphics/`, restore rehearsal, logs, MCP connection placeholder).
+  - Scope: `deploy/deploy.sh <tag>` per spec §23.6 (pull the public image, no login (R124), `pre-update` backup, remember the running tag, stop `-t 60`, remove, run, wait ≤ 120 s for `/health` to show the new version, roll back to the backup and previous tag on failure) holding the **only** `podman run` (spec §23.3); `deploy.sh restore <file>` (Q5); `deploy/sk.reelshub.podman.plist`; name, volume, port and media overridable by env **for tests only**; `docs/RUNBOOK.md` for the owner (run-machine setup, first deploy, Giro_00 hard links, copying the Giro_00 graphics from the handoff archive into `~/Movies/ReelsHub/giro00/graphics/`, restore rehearsal, logs, MCP connection placeholder).
   - Spec: §23.3, §23.6, §24.5, R59–R61. Depends on: 0.3, 0.6.
   - Tests: `scripts/deploy-test.sh` (isolated): deploy tag A, upgrade to tag B, forced health failure rolls back to A, backup → restore round trip.
   - Verify: the test passes locally; nothing named `reels-hub` or `reels-hub-data` was touched.

@@ -15,21 +15,21 @@ You build **Reels Hub**: a local-first app (one FastAPI process with a web UI, a
 1. This file.
 2. `docs/BUILD_PLAN.md`: find the first unchecked item (`- [ ]`) in the current phase. Check its "depends on" and any `Q:` or 🔑 marks.
 3. Only the spec sections that item cites: `docs/spec/REELS_HUB_SPEC.md` (v0.6) and, for anything visual, captions or sound, `docs/spec/DESIGN_LANGUAGE.md` (v1.2).
-4. `docs/decisions.md` only when you need the reason behind a rule (D1–D10, R1–R123, later entries).
+4. `docs/decisions.md` only when you need the reason behind a rule (D1–D10, R1–R124, later entries).
 5. Background only, when a detail is missing: `docs/reviews/` (expert packets), `docs/reference/giro00/` (the reference reel).
 
 Run `git status` and `gh pr list` first: an earlier session may have left an open PR or a half-done branch. Finish that before starting anything new.
 
 ## Source of truth and spec changes
 - `docs/spec/` and `docs/decisions.md` are the only source of truth. The old handoff repo is a frozen archive; don't use it.
-- D1–D10 and the owner's decisions R1–R123 (R119–R123: bootstrap answers) are **settled. Don't reopen them.** Entries marked `deferred` stay out of scope unless the owner brings them back.
+- D1–D10 and the owner's decisions R1–R124 (R119–R124: bootstrap and setup decisions) are **settled. Don't reopen them.** Entries marked `deferred` stay out of scope unless the owner brings them back.
 - **Don't silently change behavior described in the spec.**
   - Typos, broken links and clarifications that don't change behavior: fix them in the same PR.
-  - Behavior changes: stop and ask the owner. If approved, in the same PR: update the spec, add a decision-log entry to `docs/decisions.md` (next number after the last one, starting at R124; "From: dev"; date; reason) and add a line to the spec's §28 changelog under a new "v0.6.x (dev)" heading.
+  - Behavior changes: stop and ask the owner. If approved, in the same PR: update the spec, add a decision-log entry to `docs/decisions.md` (next number after the last one, starting at R125; "From: dev"; date; reason) and add a line to the spec's §28 changelog under a new "v0.6.x (dev)" heading.
 - Where the spec is silent on an implementation detail (file layout, function names, internal APIs), choose the simplest option and note it in the PR body. That is not a behavior change.
 
 ## Work loop (one branch per item)
-Every item in `docs/BUILD_PLAN.md` is one branch. Never commit or push to `main` (spec §24.1, D10). GitHub doesn't protect `main` (GitHub Free, R119); the committed `.githooks/pre-push` hook refuses pushes to it, so check once per clone that `git config core.hooksPath` prints `.githooks`.
+Every item in `docs/BUILD_PLAN.md` is one branch. Never commit or push to `main` (spec §24.1, D10). GitHub protects `main` (R124: PR required, check `test` green on an up-to-date branch, admins included); the committed `.githooks/pre-push` hook refuses pushes to it, so check once per clone that `git config core.hooksPath` prints `.githooks`.
 ```bash
 git switch main && git pull --ff-only
 git switch -c feature/<name>          # or fix/<name>, chore/<name>; use the name from BUILD_PLAN
@@ -48,7 +48,7 @@ make test-container                   # image build + tests inside the image + i
    git fetch origin && git rebase origin/main && make test
    git push -u origin HEAD              # after a rebase of an already pushed branch: --force-with-lease
    ```
-4. Open the PR, wait for CI, merge only when green, always with the chained command (the merge runs only if the checks pass; never `gh pr merge` alone, never `--admin`, R119):
+4. Open the PR, wait for CI, merge only when green, always with the chained command (the merge runs only if the checks pass; never `gh pr merge` alone, never `--admin`, R119, R124):
    ```bash
    gh pr create --base main --title "feat: <what>" --body-file "$TMPDIR/pr-body.md"
    gh pr checks --watch --fail-fast && gh pr merge --squash --delete-branch
@@ -107,7 +107,7 @@ Before stopping, finish and merge the current branch if it is complete and green
 **Dependencies.** Allowed: what the spec names (D7: HyperFrames, faster-whisper / WhisperX / pyannote, OpenCV, Edits MCP; plus §21: FastAPI, Jinja2, HTMX, MCP SDK, PySceneDetect, librosa, Demucs, resvg, torch CPU, anthropic) and this list, which the owner approved at bootstrap because the spec implies it: `uvicorn`, `python-multipart`, `pyyaml`, `xxhash`, `httpx`, `numpy`, `scipy`, `pydantic` (with FastAPI), `pytest-playwright`, `types-*` stubs; in CI the official `actions/*` actions, `astral-sh/setup-uv` and, only for the QEMU fallback, `docker/setup-qemu-action` (R122). CI and the release build run on `ubuntu-24.04-arm` (R121). The CLI uses `argparse` (stdlib). Anything else, including a pytest plugin: **ask first**.
 
 ## Testing (spec §24.2)
-- Every PR runs the full suite in CI (job `test`, on `ubuntu-24.04-arm`); a PR merges only when it's green (chained merge command, R119).
+- Every PR runs the full suite in CI (job `test`, on `ubuntu-24.04-arm`); a PR merges only when it's green (branch protection plus the chained merge command, R124).
 - **Fakes by default:** `TRANSCRIBE_BACKEND=fake` and a fake LLM. A real engine runs only in a test marked `real` (skipped in CI) on a small fixture.
 - **Never** real footage, real accounts or real tokens in tests. External APIs (Instagram, Anthropic, MusicBrainz, GetSongBPM, fact pages) are mocked.
 - **Fixtures: no pictures, just the code (R120).** No footage, photos or images in the repo, and no Git LFS. Test clips are generated at test time by `tests/fixtures/make_fixtures.sh` (ffmpeg lavfi test patterns and tones, metadata mimicking Sony and DJI) into an ignored folder; test images and reference frames are generated too (synthetic SVG/PNG). Only the scripts and small text files (JSON, YAML) are committed. Real snippets live only in `tests/fixtures/local/` (git-ignored); tests that need them `skip` when absent.
