@@ -35,7 +35,7 @@ trap cleanup EXIT
 build() {
   # $1 = stage, $2 = tag
   # shellcheck disable=SC2086
-  "$ENGINE" build $TLS --build-arg "INSECURE_TLS=$INSECURE" --target "$1" -t "$2" .
+  "$ENGINE" build $TLS --build-arg "INSECURE_TLS=$INSECURE" -f Containerfile --target "$1" -t "$2" .
 }
 
 echo "==> node stage (HyperFrames 0.9.39 via npm, R126)"
