@@ -109,7 +109,7 @@ From 1 Dec, deploy to the run machine only when 2 approved reels are in the buff
   - Tests: smoke test (container starts, `/health`); `hyperframes doctor` passes with Debian Chromium.
   - Local network (R125): support `REELS_HUB_INSECURE_TLS=1` for local builds (TLS verification off for podman pulls, apt, uv and npm; build args only, never in the final image, never in CI). npm is blocked on the build machine's network, so locally the `node` stage can't build: `make test-container` reports that and skips; CI must pass in full.
   - Verify: CI's container tests pass; locally `REELS_HUB_INSECURE_TLS=1 make test-container` builds what the network allows and reports the npm block clearly; afterwards `podman ps -a` and `podman volume ls` show nothing left from the test.
-- [ ] **0.3 `chore/release-image`**
+- [x] **0.3 `chore/release-image`**
   - Scope: `.github/workflows/release.yml` on `ubuntu-24.04-arm` (R121): on push to `main`, build `linux/arm64` `runtime` and push `ghcr.io/ai-slop-code/reels-hub:<sha>` and `:latest`; on tag `v*`, push `:vX.Y.Z`. `permissions: contents: read, packages: write`; log in with `GITHUB_TOKEN`; label `org.opencontainers.image.source=https://github.com/ai-slop-code/reels-hub`.
   - Spec: §21, §23.6, R59. Depends on: 0.2.
   - Tests: none beyond CI; workflow lint by running it.
