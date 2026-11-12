@@ -8,6 +8,7 @@ after sleep.
 
 import datetime as dt
 import json
+import logging
 import sqlite3
 import subprocess
 import threading
@@ -24,6 +25,7 @@ BACKUP_KIND = "backup"
 BACKUP_INTERVAL = dt.timedelta(hours=24)
 
 Clock = Callable[[], dt.datetime]
+logger = logging.getLogger(__name__)
 
 
 class JobInterrupted(Exception):
@@ -124,6 +126,13 @@ def job_counts(conn: sqlite3.Connection) -> dict[str, int]:
     return counts
 
 
+def enqueue_if_idle(conn: sqlite3.Connection, kind: str, now: dt.datetime) -> int | None:
+    active = conn.execute(
+        "SELECT 1 FROM job WHERE kind = ? AND status IN ('queued', 'running')", (kind,)
+    ).fetchone()
+    return None if active is not None else enqueue(conn, kind, now)
+
+
 def enqueue_due_backup(conn: sqlite3.Connection, backup_dir: Path, now: dt.datetime) -> int | None:
     """Queue a daily backup when the newest one is older than 24 h (or missing)."""
     active = conn.execute(
@@ -201,6 +210,10 @@ def run_daily_backup(ctx: JobContext) -> None:
 
 
 class Worker:
+    """Runs jobs one at a time. Nothing runs until `ready()` is true (the media folder is mounted);
+    `prepare()` runs once before the first job (migrations). `schedules` maps a job kind to the
+    seconds between enqueues, and an enqueue is skipped while one of that kind is still queued."""
+
     def __init__(
         self,
         db_path: Path,
@@ -210,6 +223,9 @@ class Worker:
         clock: Clock = lambda: dt.datetime.now(dt.UTC),
         poll_seconds: float = 10.0,
         timer_seconds: float = 300.0,
+        ready: Callable[[], bool] = lambda: True,
+        prepare: Callable[[], None] = lambda: None,
+        schedules: Mapping[str, float] | None = None,
     ) -> None:
         self.db_path = db_path
         self.backup_dir = backup_dir
@@ -217,12 +233,18 @@ class Worker:
         self._clock = clock
         self._poll_seconds = poll_seconds
         self._timer_seconds = timer_seconds
+        self._ready = ready
+        self._prepare = prepare
+        self._schedules = dict(schedules or {})
         self._runner = _Runner()
         self._thread: threading.Thread | None = None
 
     @property
     def running(self) -> bool:
         return self._thread is not None and self._thread.is_alive()
+
+    def is_ready(self) -> bool:
+        return self._ready()
 
     def run_once(self, conn: sqlite3.Connection) -> bool:
         """Run the next queued job, if any. Returns False when the queue is empty."""
@@ -238,6 +260,7 @@ class Worker:
         except JobInterrupted:
             requeue(conn, job.id, self._clock())
         except Exception as exc:
+            logger.exception("job %s (%s) failed", job.id, job.kind)
             fail(conn, job.id, str(exc) or type(exc).__name__, self._clock())
         else:
             finish(conn, job.id, self._clock())
@@ -254,15 +277,35 @@ class Worker:
             self._thread.join(timeout)
 
     def _loop(self) -> None:
-        conn = connect(self.db_path)
+        conn: sqlite3.Connection | None = None
+        prepared = False
+        next_timer = 0.0
+        next_due = {kind: 0.0 for kind in self._schedules}
         try:
-            requeue_running(conn, self._clock())
-            next_timer = 0.0
             while not self._runner.stopping.is_set():
+                if not self._ready():
+                    self._runner.stopping.wait(self._poll_seconds)
+                    continue
+                if not prepared:
+                    try:
+                        self._prepare()
+                    except Exception:
+                        logger.exception("preparing the database failed; retrying")
+                        self._runner.stopping.wait(self._poll_seconds)
+                        continue
+                    prepared = True
+                if conn is None:
+                    conn = connect(self.db_path)
+                    requeue_running(conn, self._clock())
                 if time.monotonic() >= next_timer:
                     enqueue_due_backup(conn, self.backup_dir, self._clock())
                     next_timer = time.monotonic() + self._timer_seconds
+                for kind, every in self._schedules.items():
+                    if time.monotonic() >= next_due[kind]:
+                        enqueue_if_idle(conn, kind, self._clock())
+                        next_due[kind] = time.monotonic() + every
                 if not self.run_once(conn):
                     self._runner.stopping.wait(self._poll_seconds)
         finally:
-            conn.close()
+            if conn is not None:
+                conn.close()

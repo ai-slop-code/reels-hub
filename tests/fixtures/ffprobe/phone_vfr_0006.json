@@ -56,6 +56,7 @@
                 "multilayer": 0
             },
             "tags": {
+                "creation_time": "2026-11-12T10:00:00.000000Z",
                 "handler_name": "VideoHandler",
                 "vendor_id": "FFMP",
                 "encoder": "Lavc63.1.102 libx264"
@@ -71,14 +72,15 @@
         "format_long_name": "QuickTime / MOV",
         "start_time": "0.000000",
         "duration": "1.800000",
-        "size": "66442",
-        "bit_rate": "295297",
+        "size": "66514",
+        "bit_rate": "295617",
         "probe_score": 100,
         "tags": {
             "major_brand": "qt  ",
             "minor_version": "512",
             "compatible_brands": "qt  ",
             "make": "Apple",
+            "creation_time": "2026-11-12T10:00:00.000000Z;2026-11-12T10:00:00.000000Z",
             "model": "iPhone",
             "encoder": "Lavf63.1.102"
         }

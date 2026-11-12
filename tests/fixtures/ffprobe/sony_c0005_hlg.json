@@ -58,6 +58,7 @@
                 "multilayer": 0
             },
             "tags": {
+                "creation_time": "2026-11-12T10:00:00.000000Z",
                 "language": "und",
                 "handler_name": "VideoHandler",
                 "encoder": "Lavc63.1.102 libx265"
@@ -80,6 +81,7 @@
             "major_brand": "isom",
             "minor_version": "512",
             "compatible_brands": "isomiso2mp41",
+            "creation_time": "2026-11-12T10:00:00.000000Z",
             "encoder": "Lavf63.1.102"
         }
     }

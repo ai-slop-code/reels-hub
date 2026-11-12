@@ -6,7 +6,7 @@ transfer). The fps-mismatch flag needs a reel and comes with 9.3.
 
 import json
 import subprocess
-from collections.abc import Mapping
+from collections.abc import Iterable, Mapping
 from dataclasses import dataclass
 from fractions import Fraction
 from pathlib import Path
@@ -33,6 +33,7 @@ class ProbeResult:
     camera: str | None
     start_tc: str | None
     color_transfer: str | None
+    recorded_at: str | None
 
     @property
     def hdr_log(self) -> bool:
@@ -82,6 +83,7 @@ def parse_ffprobe(data: Mapping[str, Any]) -> ProbeResult:
         camera=_camera(fmt_tags, _tags(video) if video else {}),
         start_tc=_timecode(fmt_tags, video, timecode_stream),
         color_transfer=_str(video.get("color_transfer")) if video else None,
+        recorded_at=_find([fmt_tags, _tags(video)], ("creation_time",)),
     )
 
 
@@ -135,7 +137,7 @@ def _timecode(
     return _find(candidates, ("timecode",))
 
 
-def _find(tag_sets: Any, keys: tuple[str, ...]) -> str | None:
+def _find(tag_sets: Iterable[Mapping[str, str]], keys: tuple[str, ...]) -> str | None:
     for tags in tag_sets:
         for key in keys:
             value = tags.get(key)

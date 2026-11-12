@@ -12,8 +12,8 @@ set -eu
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 OUT="${1:-$ROOT/tests/fixtures/generated}"
 FF="ffmpeg -hide_banner -loglevel error -y -fflags +bitexact -flags:v +bitexact -flags:a +bitexact"
-SONY_META="-movflags use_metadata_tags -metadata make=Sony -metadata model=ILME-FX30"
-DJI_META="-movflags use_metadata_tags -metadata make=DJI -metadata model=Osmo_Action_5_Pro"
+SONY_META="-movflags use_metadata_tags -metadata make=Sony -metadata model=ILME-FX30 -metadata creation_time=2026-11-12T10:00:00.000000Z"
+DJI_META="-movflags use_metadata_tags -metadata make=DJI -metadata model=Osmo_Action_5_Pro -metadata creation_time=2026-11-12T10:00:00.000000Z"
 TC="-timecode 10:00:00:00"
 
 rm -rf "$OUT"
@@ -56,11 +56,11 @@ $FF -f lavfi -i testsrc2=size=960x540:rate=25 -f lavfi -i "$CLAP_A" \
 # HLG (arib-std-b67), 10-bit HEVC, 2 s: a log/HDR transfer the ingest flags (R69).
 $FF -f lavfi -i testsrc2=size=960x540:rate=25 -t 2 -c:v libx265 -pix_fmt yuv420p10le -crf 30 \
   -x265-params "colorprim=bt2020:transfer=arib-std-b67:colormatrix=bt2020nc" \
-  "$SONY/C0005.MP4"
+  -metadata creation_time=2026-11-12T10:00:00.000000Z "$SONY/C0005.MP4"
 
 # 4K HEVC, 2 s (the one 4K clip; R64, R69).
 $FF -f lavfi -i testsrc2=size=3840x2160:rate=25 -t 2 -c:v libx265 -preset ultrafast -pix_fmt yuv420p \
-  -crf 38 -x265-params "log-level=error" "$SONY/C0007.MP4"
+  -crf 38 -x265-params "log-level=error" -metadata creation_time=2026-11-12T10:00:00.000000Z "$SONY/C0007.MP4"
 
 # DJI-like: 25p, 4 s, with a low-res proxy (.LRF) and a 48 kHz stereo WAV (the mic).
 DJI_BASE="DJI_20261112120000_0001_D"
@@ -81,7 +81,7 @@ $FF -f lavfi -i testsrc2=size=960x540:rate=25 -f lavfi -i "$CLAP_B" \
 # Phone-like variable frame rate: most frames 25 fps, then a slower stretch (R69).
 $FF -f lavfi -i testsrc2=size=960x540:rate=25 -t 2 \
   -vf "setpts='if(lt(N\,25)\,N/25\,1+(N-25)/10)/TB'" -fps_mode vfr \
-  -c:v libx264 -pix_fmt yuv420p -crf 35 -movflags use_metadata_tags -metadata make=Apple \
+  -c:v libx264 -pix_fmt yuv420p -crf 35 -movflags use_metadata_tags -metadata make=Apple -metadata creation_time=2026-11-12T10:00:00.000000Z \
   -metadata model=iPhone -f mov "$PHONE/VFR_0006.MOV"
 
 for file in "$OUT"/giro00/raw/*/*; do

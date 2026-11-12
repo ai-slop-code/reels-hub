@@ -36,7 +36,7 @@ def tables(path: Path) -> set[str]:
 def test_bundled_schema_applies_to_an_empty_db(tmp_path: Path) -> None:
     db_path = tmp_path / "hub.sqlite"
     result = migrate(db_path, tmp_path / "backups", now=lambda: NOW)
-    assert (result.from_version, result.to_version, result.backup) == (0, 1, None)
+    assert (result.from_version, result.to_version, result.backup) == (0, 2, None)
     assert tables(db_path) == PHASE0_TABLES
 
 
@@ -44,7 +44,7 @@ def test_second_start_is_a_no_op_and_writes_no_backup(tmp_path: Path) -> None:
     db_path, backups = tmp_path / "hub.sqlite", tmp_path / "backups"
     migrate(db_path, backups, now=lambda: NOW)
     result = migrate(db_path, backups, now=lambda: NOW)
-    assert (result.from_version, result.to_version, result.backup) == (1, 1, None)
+    assert (result.from_version, result.to_version, result.backup) == (2, 2, None)
     assert not backups.exists()
 
 
@@ -88,7 +88,7 @@ def test_migration_numbers_must_be_contiguous() -> None:
 
 
 def test_bundled_migrations_are_numbered_from_one() -> None:
-    assert [(m.version, m.name) for m in bundled_migrations()] == [(1, "phase0")]
+    assert [(m.version, m.name) for m in bundled_migrations()] == [(1, "phase0"), (2, "watcher")]
 
 
 def test_connection_enforces_foreign_keys_and_wal(tmp_path: Path) -> None:
@@ -124,10 +124,10 @@ def test_migrate_command_prints_the_schema_change(
     monkeypatch.setenv("REELS_HUB_DATA_DIR", str(tmp_path / "data"))
     assert main(["migrate"]) == 0
     assert capsys.readouterr().out.splitlines() == [
-        "schema 0 -> 1",
+        "schema 0 -> 2",
     ]
     assert main(["migrate"]) == 0
-    assert capsys.readouterr().out.splitlines() == ["schema 1 -> 1"]
+    assert capsys.readouterr().out.splitlines() == ["schema 2 -> 2"]
 
 
 def test_migrate_refuses_when_the_media_folder_is_not_mounted(
