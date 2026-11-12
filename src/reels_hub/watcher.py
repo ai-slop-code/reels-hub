@@ -17,8 +17,9 @@ from pathlib import Path
 import xxhash
 
 from reels_hub.config import Settings
-from reels_hub.jobs import JobContext
+from reels_hub.jobs import JobContext, enqueue
 from reels_hub.probe import ProbeError, ProbeResult, probe
+from reels_hub.proxies import PROXY_KIND
 
 SCAN_KIND = "scan"
 STABLE_SECONDS = 10.0
@@ -194,8 +195,9 @@ class Watcher:
             "duration_ms, fps, width, height, audio_channels, color_transfer, start_tc, flags, "
             "alt_audio_rel_path, lrf_rel_path, recorded_at, created_at, updated_at"
         )
+        clip_id = self._new_clip_id(conn, project_id, rel, path)
         values = (
-            self._new_clip_id(conn, project_id, rel, path),
+            clip_id,
             rel,
             path.stat().st_size,
             digest,
@@ -220,6 +222,7 @@ class Watcher:
         )
         placeholders = ", ".join("?" * len(values))
         conn.execute(f"INSERT INTO clip ({columns}) VALUES ({placeholders})", values)
+        enqueue(conn, PROXY_KIND, now, {"clip_id": clip_id})
         report.registered.append(rel)
 
     def _new_clip_id(self, conn: sqlite3.Connection, project_id: str, rel: str, path: Path) -> str:
